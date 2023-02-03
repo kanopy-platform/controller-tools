@@ -34,6 +34,7 @@ import (
 	"sigs.k8s.io/controller-tools/pkg/schemapatcher"
 	"sigs.k8s.io/controller-tools/pkg/version"
 	"sigs.k8s.io/controller-tools/pkg/webhook"
+	"sigs.k8s.io/controller-tools/pkg/xrd"
 )
 
 //go:generate go run ../helpgen/main.go paths=../../pkg/... generate:headerFile=../../boilerplate.go.txt,year=2019
@@ -49,6 +50,7 @@ var (
 	// and has options for output forms.
 	allGenerators = map[string]genall.Generator{
 		"crd":         crd.Generator{},
+		"xrd":         xrd.Generator{},
 		"rbac":        rbac.Generator{},
 		"object":      deepcopy.Generator{},
 		"webhook":     webhook.Generator{},
