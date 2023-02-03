@@ -7,12 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	xpapiext "github.com/crossplane/crossplane/apis/apiextensions/v1"
-
 	"gopkg.in/yaml.v2"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	crdmarkers "sigs.k8s.io/controller-tools/pkg/crd/markers"
@@ -139,7 +136,7 @@ func (g Generator) Generate(ctx *genall.GenerationContext) error {
 
 	for _, groupKind := range kubeKinds {
 		//parser.NeedCRDFor(groupKind, g.MaxDescLen)
-		xrd := xpapiext.CompositeResourceDefinition{
+		xrd := XRD{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "XMock" + "." + groupKind.Group,
 			},
@@ -147,7 +144,7 @@ func (g Generator) Generate(ctx *genall.GenerationContext) error {
 				APIVersion: "apiextensions.crossplane.io/v1",
 				Kind:       "CompositeResourceDefinition",
 			},
-			Spec: xpapiext.CompositeResourceDefinitionSpec{
+			Spec: XRDSpec{
 				Names: apiext.CustomResourceDefinitionNames{},
 			},
 		}
@@ -183,21 +180,10 @@ func (g Generator) Generate(ctx *genall.GenerationContext) error {
 			fullSchema := parser.FlattenedSchemata[typeIdent]
 			fs := &fullSchema
 
-			b, err := fs.Marshal()
-			if err != nil {
-				panic(err)
-			}
-
-			fmt.Println(string(b))
-
-			raw := runtime.RawExtension{
-				Raw: b,
-			}
-
-			version := xpapiext.CompositeResourceDefinitionVersion{
+			version := XRDVersion{
 				Name: "foo",
-				Schema: &xpapiext.CompositeResourceValidation{
-					OpenAPIV3Schema: raw,
+				Schema: &XRValidation{
+					OpenAPIV3Schema: fs,
 				},
 			}
 			xrd.Spec.Versions = append(xrd.Spec.Versions, version)
