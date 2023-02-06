@@ -7,9 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"gopkg.in/yaml.v2"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	crdmarkers "sigs.k8s.io/controller-tools/pkg/crd/markers"
@@ -89,17 +87,22 @@ func transformRemoveCRDStatus(obj map[string]interface{}) error {
 }
 
 func (g Generator) Generate(ctx *genall.GenerationContext) error {
-	parser := &crd.Parser{
-		Collector: ctx.Collector,
-		Checker:   ctx.Checker,
-		// Perform defaulting here to avoid ambiguity later
-		IgnoreUnexportedFields: g.IgnoreUnexportedFields != nil && *g.IgnoreUnexportedFields == true,
-		AllowDangerousTypes:    g.AllowDangerousTypes != nil && *g.AllowDangerousTypes == true,
-		// Indicates the parser on whether to register the ObjectMeta type or not
-		GenerateEmbeddedObjectMeta: g.GenerateEmbeddedObjectMeta != nil && *g.GenerateEmbeddedObjectMeta == true,
+	parser := &Parser{
+		Parser: &crd.Parser{
+			Collector:                  ctx.Collector,
+			Checker:                    ctx.Checker,
+			IgnoreUnexportedFields:     true,
+			AllowDangerousTypes:        false,
+			GenerateEmbeddedObjectMeta: false,
+		},
 	}
 
-	crd.AddKnownTypes(parser)
+	parser.Collector = ctx.Collector
+	parser.Checker = ctx.Checker
+	parser.IgnoreUnexportedFields = g.IgnoreUnexportedFields != nil && *g.IgnoreUnexportedFields == true
+	parser.AllowDangerousTypes = g.AllowDangerousTypes != nil && *g.AllowDangerousTypes == true
+	parser.GenerateEmbeddedObjectMeta = g.GenerateEmbeddedObjectMeta != nil && *g.GenerateEmbeddedObjectMeta == true
+	crd.AddKnownTypes(parser.Parser)
 	for _, root := range ctx.Roots {
 		parser.NeedPackage(root)
 	}
@@ -111,7 +114,7 @@ func (g Generator) Generate(ctx *genall.GenerationContext) error {
 	}
 
 	// TODO: allow selecting a specific object
-	kubeKinds := FindKubeKinds(parser, metav1Pkg)
+	kubeKinds := FindKubeKinds(parser.Parser, metav1Pkg)
 	if len(kubeKinds) == 0 {
 		// no objects in the roots
 		return nil
@@ -135,21 +138,9 @@ func (g Generator) Generate(ctx *genall.GenerationContext) error {
 	headerText = strings.ReplaceAll(headerText, " YEAR", " "+g.Year)
 
 	for _, groupKind := range kubeKinds {
-		//parser.NeedCRDFor(groupKind, g.MaxDescLen)
-		xrd := XRD{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "XMock" + "." + groupKind.Group,
-			},
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: "apiextensions.crossplane.io/v1",
-				Kind:       "CompositeResourceDefinition",
-			},
-			Spec: XRDSpec{
-				Names: apiext.CustomResourceDefinitionNames{},
-			},
-		}
+		parser.NeedXRDFor(groupKind, g.MaxDescLen)
+		xrdRaw := parser.XRDefinitons[groupKind]
 
-		//crdRaw := parser.CustomResourceDefinitions[groupKind]
 		//addAttribution(&crdRaw)
 
 		// Prevent the top level metadata for the CRD to be generate regardless of the intention in the arguments
@@ -165,35 +156,11 @@ func (g Generator) Generate(ctx *genall.GenerationContext) error {
 				versionedCRDs[i] = conv
 			}
 		*/
-		packages := []*loader.Package{}
-		for pkg, gv := range parser.GroupVersions {
-			fmt.Printf("GVK: %v, %v\n", gv, groupKind)
-			if gv.Group != groupKind.Group {
-				continue
-			}
-			packages = append(packages, pkg)
-		}
 
-		for _, pkg := range packages {
-			typeIdent := crd.TypeIdent{Package: pkg, Name: groupKind.Kind}
-			parser.NeedFlattenedSchemaFor(typeIdent)
-			fullSchema := parser.FlattenedSchemata[typeIdent]
-			fs := &fullSchema
-
-			version := XRDVersion{
-				Name: "foo",
-				Schema: &XRValidation{
-					OpenAPIV3Schema: fs,
-				},
-			}
-			xrd.Spec.Versions = append(xrd.Spec.Versions, version)
-		}
-
-		y, err := yaml.Marshal(xrd)
-		if err != nil {
+		fileName := fmt.Sprintf("%s_%s.yaml", xrdRaw.Spec.Group, xrdRaw.Spec.Names.Plural)
+		if err := ctx.WriteYAML(fileName, headerText, []interface{}{xrdRaw}, genall.WithTransform(transformRemoveCRDStatus)); err != nil {
 			return err
 		}
-		fmt.Println(string(y))
 
 		/*		for i, crd := range versionedXRDs {
 					//removeDescriptionFromMetadata(crd.(*apiext.CustomResourceDefinition))

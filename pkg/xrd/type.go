@@ -2,7 +2,7 @@ package xrd
 
 import (
 	xpapiext "github.com/crossplane/crossplane/apis/apiextensions/v1"
-	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	extv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -118,5 +118,5 @@ type XRValidation struct {
 	// OpenAPIV3Schema is the OpenAPI v3 schema to use for validation and
 	// pruning.
 	// +kubebuilder:pruning:PreserveUnknownFields
-	OpenAPIV3Schema *apiext.JSONSchemaProps `json:"openAPIV3Schema,omitempty"`
+	OpenAPIV3Schema *extv1.JSONSchemaProps `json:"openAPIV3Schema,omitempty"`
 }
