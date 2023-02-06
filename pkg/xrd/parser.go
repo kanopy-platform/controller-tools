@@ -85,12 +85,14 @@ func (p *Parser) NeedXRDFor(groupKind schema.GroupKind, maxDescLen *int) {
 			Kind:       xpapiext.CompositeResourceDefinitionKind,
 		},
 		Spec: XRDSpec{
+			Group: groupKind.Group,
 			Names: apiext.CustomResourceDefinitionNames{
 				Kind:     groupKind.Kind,
 				ListKind: groupKind.Kind + "List",
 				Plural:   defaultPlural,
 				Singular: strings.ToLower(groupKind.Kind),
 			},
+			//TODO: manage claims,
 		},
 	}
 
@@ -112,6 +114,7 @@ func (p *Parser) NeedXRDFor(groupKind schema.GroupKind, maxDescLen *int) {
 			Schema: &XRValidation{
 				OpenAPIV3Schema: &fullSchema,
 			},
+			Served: true,
 		}
 		xrd.Spec.Versions = append(xrd.Spec.Versions, version)
 	}
@@ -151,6 +154,12 @@ func (p *Parser) NeedXRDFor(groupKind schema.GroupKind, maxDescLen *int) {
 	// it is necessary to make sure the order of XRD versions in xrd.Spec.Versions is stable and explicitly set crd.Spec.Version.
 	// Otherwise, xrd.Spec.Version may point to different XRD versions across different runs.
 	sort.Slice(xrd.Spec.Versions, func(i, j int) bool { return xrd.Spec.Versions[i].Name < xrd.Spec.Versions[j].Name })
+
+	// make sure we have *a* storage version
+	// (default it if we only have one, otherwise, bail)
+	if len(xrd.Spec.Versions) == 1 {
+		xrd.Spec.Versions[0].Referenceable = true
+	}
 
 	// This is configuration validation to ensure we have at least one
 	// storage version and a served versions since both are required
