@@ -143,38 +143,10 @@ func (g Generator) Generate(ctx *genall.GenerationContext) error {
 
 		//addAttribution(&crdRaw)
 
-		// Prevent the top level metadata for the CRD to be generate regardless of the intention in the arguments
-		//crd.FixTopLevelMetadata(crdRaw)
-
-		//		versionedXRDs := make([]interface{}, len(xrdVersions))
-		/*
-			for i, ver := range xrdVersions {
-				conv, err := crd.AsVersion(crdRaw, schema.GroupVersion{Group: apiext.SchemeGroupVersion.Group, Version: ver})
-				if err != nil {
-					return err
-				}
-				versionedCRDs[i] = conv
-			}
-		*/
-
 		fileName := fmt.Sprintf("%s_%s.yaml", xrdRaw.Spec.Group, xrdRaw.Spec.Names.Plural)
 		if err := ctx.WriteYAML(fileName, headerText, []interface{}{xrdRaw}, genall.WithTransform(transformRemoveXRDStatus)); err != nil {
 			return err
 		}
-
-		/*		for i, crd := range versionedXRDs {
-					//removeDescriptionFromMetadata(crd.(*apiext.CustomResourceDefinition))
-					var fileName string
-					if i == 0 {
-						fileName = fmt.Sprintf("%s_%s.yaml", crdRaw.Spec.Group, crdRaw.Spec.Names.Plural)
-					} else {
-						fileName = fmt.Sprintf("%s_%s.%s.yaml", crdRaw.Spec.Group, crdRaw.Spec.Names.Plural, xrdVersions[i])
-					}
-					if err := ctx.WriteYAML(fileName, headerText, []interface{}{crd}, genall.WithTransform(transformRemoveCRDStatus)); err != nil {
-						return err
-					}
-				}
-		*/
 	}
 
 	return nil
