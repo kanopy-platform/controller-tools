@@ -158,7 +158,7 @@ func (g Generator) Generate(ctx *genall.GenerationContext) error {
 		*/
 
 		fileName := fmt.Sprintf("%s_%s.yaml", xrdRaw.Spec.Group, xrdRaw.Spec.Names.Plural)
-		if err := ctx.WriteYAML(fileName, headerText, []interface{}{xrdRaw}, genall.WithTransform(transformRemoveCRDStatus)); err != nil {
+		if err := ctx.WriteYAML(fileName, headerText, []interface{}{xrdRaw}, genall.WithTransform(transformRemoveXRDStatus)); err != nil {
 			return err
 		}
 
@@ -322,4 +322,10 @@ func filterTypesForCRDs(node ast.Node) bool {
 	default:
 		return true
 	}
+}
+
+// transformRemoveCRDStatus ensures we do not write the CRD status field.
+func transformRemoveXRDStatus(obj map[string]interface{}) error {
+	delete(obj, "status")
+	return nil
 }
