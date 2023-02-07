@@ -16,6 +16,7 @@ import (
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
 // +kubebuilder:storageversion
 // +kubebuilder:resource:scope=Cluster,categories=crossplane,shortName=xrd;xrds
+// +kubebuilder:claim:singular=poo,kind=poop
 type MockXRD struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

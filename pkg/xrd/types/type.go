@@ -1,4 +1,4 @@
-package xrd
+package types
 
 import (
 	xpapiext "github.com/crossplane/crossplane/apis/apiextensions/v1"
