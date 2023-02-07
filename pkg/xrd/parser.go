@@ -13,32 +13,25 @@ import (
 	"sigs.k8s.io/controller-tools/pkg/crd"
 	"sigs.k8s.io/controller-tools/pkg/loader"
 	"sigs.k8s.io/controller-tools/pkg/markers"
+	"sigs.k8s.io/controller-tools/pkg/xrd/types"
 )
 
 type SpecMarker interface {
-	ApplyToXRD(xrd *XRDSpec, version string) error
+	ApplyToXRD(xrd *types.XRDSpec, version string) error
 }
 
 type Marker interface {
-	ApplyToXRD(xrd *XRD, version string) error
+	ApplyToXRD(xrd *types.XRD, version string) error
 }
 
 type Parser struct {
 	*crd.Parser
-	XRDefinitons map[schema.GroupKind]XRD
+	XRDefinitons map[schema.GroupKind]types.XRD
 	// packages marks packages as loaded, to avoid re-loading them.
 	packages map[*loader.Package]struct{}
 }
 
 func (p *Parser) init() {
-	//	if p.packages == nil {
-	//		p.packages = make(map[*loader.Package]struct{})
-	//	}
-	//	if p.flattener == nil {
-	//		p.flattener = &Flattener{
-	//			Parser: p,
-	//		}
-	//	}
 	if p.Schemata == nil {
 		p.Schemata = make(map[crd.TypeIdent]apiext.JSONSchemaProps)
 	}
@@ -59,7 +52,7 @@ func (p *Parser) init() {
 	}
 
 	if p.XRDefinitons == nil {
-		p.XRDefinitons = make(map[schema.GroupKind]XRD)
+		p.XRDefinitons = make(map[schema.GroupKind]types.XRD)
 	}
 }
 
@@ -76,7 +69,7 @@ func (p *Parser) NeedXRDFor(groupKind schema.GroupKind, maxDescLen *int) {
 		packages = append(packages, pkg)
 	}
 	defaultPlural := strings.ToLower(flect.Pluralize(groupKind.Kind))
-	xrd := XRD{
+	xrd := types.XRD{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: defaultPlural + "." + groupKind.Group,
 		},
@@ -84,7 +77,7 @@ func (p *Parser) NeedXRDFor(groupKind schema.GroupKind, maxDescLen *int) {
 			APIVersion: xpapiext.SchemeGroupVersion.String(),
 			Kind:       xpapiext.CompositeResourceDefinitionKind,
 		},
-		Spec: XRDSpec{
+		Spec: types.XRDSpec{
 			Group: groupKind.Group,
 			Names: apiext.CustomResourceDefinitionNames{
 				Kind:     groupKind.Kind,
@@ -109,9 +102,9 @@ func (p *Parser) NeedXRDFor(groupKind schema.GroupKind, maxDescLen *int) {
 			crd.TruncateDescription(&fullSchema, *maxDescLen)
 		}
 
-		version := XRDVersion{
+		version := types.XRDVersion{
 			Name: p.GroupVersions[pkg].Version,
-			Schema: &XRValidation{
+			Schema: &types.XRValidation{
 				OpenAPIV3Schema: &fullSchema,
 			},
 			Served: true,
@@ -180,4 +173,19 @@ func (p *Parser) NeedXRDFor(groupKind schema.GroupKind, maxDescLen *int) {
 	}
 
 	p.XRDefinitons[groupKind] = xrd
+}
+
+func (p *Parser) indexTypes(pkg *loader.Package) {
+	pkgMarkers, err := markers.PackageMarkers(p.Collector, pkg)
+	if err != nil {
+		pkg.AddError(err)
+	} else {
+		if skipPkg := pkgMarkers.Get("kubebuilder:skip"); skipPkg != nil {
+			return
+		}
+
+		if claimsVal := pkgMarkers.Get("kubebuilder:claims"); claimsVal != nil {
+
+		}
+	}
 }

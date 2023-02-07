@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	crdmarkers "sigs.k8s.io/controller-tools/pkg/crd/markers"
+	xrdmarkers "sigs.k8s.io/controller-tools/pkg/xrd/markers"
 
 	"sigs.k8s.io/controller-tools/pkg/crd"
 	"sigs.k8s.io/controller-tools/pkg/genall"
@@ -77,7 +78,11 @@ func (Generator) CheckFilter() loader.NodeFilter {
 	return filterTypesForCRDs
 }
 func (Generator) RegisterMarkers(into *markers.Registry) error {
-	return crdmarkers.Register(into)
+	err := crdmarkers.Register(into)
+	if err != nil {
+		return err
+	}
+	return xrdmarkers.Register(into)
 }
 
 // transformRemoveCRDStatus ensures we do not write the CRD status field.

@@ -1,26 +1,70 @@
 package markers
 
 import (
+	"fmt"
+
+	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"sigs.k8s.io/controller-tools/pkg/markers"
-	"sigs.k8s.io/controller-tools/pkg/xrd"
+	"sigs.k8s.io/controller-tools/pkg/xrd/types"
 )
 
-var XRDMarkers = []*definitionWithHelp{
+var AllDefinitions = []*definitionWithHelp{
 	// Reusing storageversion to map to Referenceable to make moving between XRD and CRD more seamless
 	must(markers.MakeDefinition("kubebuilder:storageversion", markers.DescribesType, StorageVersion{})).
 		WithHelp(StorageVersion{}.Help()),
+	must(markers.MakeDefinition("kubebuilder:claim", markers.DescribesType, Claim{})).
+		WithHelp(Claim{}.Help()),
 }
 
-type StorageVersions struct{}
+// +controllertools:marker:generateHelp:category=XRD
+// Claim indicats that the XRD should provide a namespaced claim resource
+type Claim struct {
+	// Singular is required
+	Singular string `marker:"singular"`
 
-func (s StorageVersion) ApplyToXRD(xrd *xrd.XRDSpec, version string) error {
+	// Plural is optional and will be set to Singular + "s" if left blank
+	Plural string `marker:"plural,optional"`
+
+	// ShortNames is optional and will be omitted if empty
+	ShortNames []string `marker:"shortNames,optional"`
+
+	// Kind is required
+	Kind string `marker:"kind"`
+
+	// ListKind is optional and will be Kind + "List" if not set
+	ListKind string `marker:"listKind,optional"`
+
+	// Categories is optionl and will be omitted if empty
+	Categories []string `marker:"categories,optional"`
+}
+
+func (c Claim) ApplyToXRD(spec *types.XRDSpec, version string) error {
+
+	if spec.ClaimNames == nil {
+		spec.ClaimNames = &apiext.CustomResourceDefinitionNames{}
+	}
+
+	if c.Singular == "" {
+		return fmt.Errorf("singular requried: kubebuilder:claim")
+
+	}
+	spec.ClaimNames.Singular = c.Singular
+
+	return nil
+}
+
+// +controllertools:marker:generateHelp:category=XRD
+// StorageVersion nodes the version of a XRD that should be refereanceable as the storageversion
+type StorageVersion struct{}
+
+func (s StorageVersion) ApplyToXRD(spec *types.XRDSpec, version string) error {
 	if version == "" {
 		// single-version, do nothing
 		return nil
 	}
 	// multi-version
-	for i := range xrd.Spec.Versions {
-		ver := &crd.Spec.Versions[i]
+	for i := range spec.Versions {
+		ver := &spec.Versions[i]
 		if ver.Name != version {
 			continue
 		}
