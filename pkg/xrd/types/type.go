@@ -10,8 +10,8 @@ type XRD struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   XRDSpec                                    `json:"spec,omitempty"`
-	Status xpapiext.CompositeResourceDefinitionStatus `json:"status,omitempty"`
+	Spec XRDSpec `json:"spec,omitempty"`
+	//	Status xpapiext.CompositeResourceDefinitionStatus `json:"status,omitempty"`
 }
 
 type XRDSpec struct {

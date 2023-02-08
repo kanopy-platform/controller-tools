@@ -18,6 +18,11 @@ var AllDefinitions = []*definitionWithHelp{
 
 // +controllertools:marker:generateHelp:category=XRD
 // Claim indicats that the XRD should provide a namespaced claim resource
+// TODO: these should really be markers on the claim kinds to link
+// them to an XR kind since we will need to render both. For now
+// keeping the types and names and embeds correct is up to the
+// authors. Claims cannot be colocatged in the same library as the XR
+// or they will get generated.
 type Claim struct {
 	// Singular is required
 	Singular string `marker:"singular"`
@@ -45,10 +50,33 @@ func (c Claim) ApplyToXRD(spec *types.XRDSpec, version string) error {
 	}
 
 	if c.Singular == "" {
-		return fmt.Errorf("singular requried: kubebuilder:claim")
+		return fmt.Errorf("singular requried: kubebuilder:claim:singular=<string>,kind=<string>")
+
+	}
+	if c.Kind == "" {
+		return fmt.Errorf("kind requried: kubebuilder:claim:singular=<string>,kind=<string>")
 
 	}
 	spec.ClaimNames.Singular = c.Singular
+	spec.ClaimNames.Kind = c.Kind
+
+	spec.ClaimNames.Plural = spec.ClaimNames.Singular + "s"
+	if c.Plural != "" {
+		spec.ClaimNames.Plural = c.Plural
+	}
+
+	spec.ClaimNames.ListKind = spec.ClaimNames.Kind + "List"
+	if c.ListKind != "" {
+		spec.ClaimNames.ListKind = c.ListKind
+	}
+
+	if len(c.ShortNames) > 0 {
+		spec.ClaimNames.ShortNames = append(spec.ClaimNames.ShortNames, c.ShortNames...)
+	}
+
+	if len(c.Categories) > 0 {
+		spec.ClaimNames.Categories = append(spec.ClaimNames.Categories, c.Categories...)
+	}
 
 	return nil
 }
