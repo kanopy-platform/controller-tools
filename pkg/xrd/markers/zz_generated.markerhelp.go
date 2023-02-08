@@ -29,7 +29,7 @@ func (Claim) Help() *markers.DefinitionHelp {
 	return &markers.DefinitionHelp{
 		Category: "XRD",
 		DetailedHelp: markers.DetailedHelp{
-			Summary: "indicats that the XRD should provide a namespaced claim resource",
+			Summary: "indicats that the XRD should provide a namespaced claim resource TODO: these should really be markers on the claim kinds to link them to an XR kind since we will need to render both. For now keeping the types and names and embeds correct is up to the authors. Claims cannot be colocatged in the same library as the XR or they will get generated.",
 			Details: "",
 		},
 		FieldHelp: map[string]markers.DetailedHelp{

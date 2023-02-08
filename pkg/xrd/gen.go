@@ -148,6 +148,12 @@ func (g Generator) Generate(ctx *genall.GenerationContext) error {
 
 		//addAttribution(&crdRaw)
 
+		// the XRD status should be embedded as a field but we can suppress it in the XRD generation
+		// and let crossplane inject it for us
+		for _, version := range xrdRaw.Spec.Versions {
+			removeXRDStatusProps(version.Schema.OpenAPIV3Schema)
+		}
+
 		fileName := fmt.Sprintf("%s_%s.yaml", xrdRaw.Spec.Group, xrdRaw.Spec.Names.Plural)
 		if err := ctx.WriteYAML(fileName, headerText, []interface{}{xrdRaw}, genall.WithTransform(transformRemoveXRDStatus)); err != nil {
 			return err
@@ -305,4 +311,8 @@ func filterTypesForCRDs(node ast.Node) bool {
 func transformRemoveXRDStatus(obj map[string]interface{}) error {
 	delete(obj, "status")
 	return nil
+}
+
+func removeXRDStatusProps(v *apiext.JSONSchemaProps) {
+	delete(v.Properties, "status")
 }

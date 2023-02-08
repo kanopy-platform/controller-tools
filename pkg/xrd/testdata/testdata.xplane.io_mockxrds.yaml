@@ -6,8 +6,9 @@ metadata:
   name: mockxrds.testdata.xplane.io
 spec:
   claimNames:
-    kind: ""
-    plural: ""
+    kind: poop
+    listKind: poopList
+    plural: poos
     singular: poo
   group: testdata.xplane.io
   names:
@@ -43,85 +44,6 @@ spec:
                 type: string
             required:
             - thing
-            type: object
-          status:
-            description: CompositeResourceDefinitionStatus shows the observed state
-              of the definition.
-            properties:
-              conditions:
-                description: Conditions of the resource.
-                items:
-                  description: A Condition that may apply to a resource.
-                  properties:
-                    lastTransitionTime:
-                      description: LastTransitionTime is the last time this condition
-                        transitioned from one status to another.
-                      format: date-time
-                      type: string
-                    message:
-                      description: A Message containing details about this condition's
-                        last transition from one status to another, if any.
-                      type: string
-                    reason:
-                      description: A Reason for this condition's last transition from
-                        one status to another.
-                      type: string
-                    status:
-                      description: Status of this condition; is it currently True,
-                        False, or Unknown?
-                      type: string
-                    type:
-                      description: Type of this condition. At most one of each condition
-                        type may apply to a resource at any point in time.
-                      type: string
-                  required:
-                  - lastTransitionTime
-                  - reason
-                  - status
-                  - type
-                  type: object
-                type: array
-              controllers:
-                description: Controllers represents the status of the controllers
-                  that power this composite resource definition.
-                properties:
-                  compositeResourceClaimType:
-                    description: The CompositeResourceClaimTypeRef is the type of
-                      composite resource claim that Crossplane is currently reconciling
-                      for this definition. Its version will eventually become consistent
-                      with the definition's referenceable version. Note that clients
-                      may interact with any served type; this is simply the type that
-                      Crossplane interacts with.
-                    properties:
-                      apiVersion:
-                        description: APIVersion of the type.
-                        type: string
-                      kind:
-                        description: Kind of the type.
-                        type: string
-                    required:
-                    - apiVersion
-                    - kind
-                    type: object
-                  compositeResourceType:
-                    description: The CompositeResourceTypeRef is the type of composite
-                      resource that Crossplane is currently reconciling for this definition.
-                      Its version will eventually become consistent with the definition's
-                      referenceable version. Note that clients may interact with any
-                      served type; this is simply the type that Crossplane interacts
-                      with.
-                    properties:
-                      apiVersion:
-                        description: APIVersion of the type.
-                        type: string
-                      kind:
-                        description: Kind of the type.
-                        type: string
-                    required:
-                    - apiVersion
-                    - kind
-                    type: object
-                type: object
             type: object
         type: object
     served: true
