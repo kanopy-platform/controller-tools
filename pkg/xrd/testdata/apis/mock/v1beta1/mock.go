@@ -1,5 +1,5 @@
 // +groupName=testdata.xplane.io
-// +versionName=v1
+// +versionName=v1beta1
 package mock
 
 import (
@@ -13,8 +13,10 @@ import (
 // +kubebuilder:printcolumn:name="ESTABLISHED",type="string",JSONPath=".status.conditions[?(@.type=='Established')].status"
 // +kubebuilder:printcolumn:name="OFFERED",type="string",JSONPath=".status.conditions[?(@.type=='Offered')].status"
 // +kubebuilder:printcolumn:name="AGE",type="date",JSONPath=".metadata.creationTimestamp"
+// +kubebuilder:storageversion
 // +kubebuilder:resource:scope=Cluster,categories=crossplane,shortName=xrd;xrds
 // +kubebuilder:claim:singular=foo,kind=foos
+// +kubebuilder:defaultcompositionref:name=examplecomp,enforced=true
 type MockXRD struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -27,6 +29,4 @@ type MockXRDSpec struct {
 	Thing string `json:"thing"`
 	//+optional
 	OtherThing string `json:"otherThing"`
-	//+optional
-	NewThing int `json:"newThing"`
 }
