@@ -40,6 +40,8 @@ spec:
             type: object
           spec:
             properties:
+              newThing:
+                type: integer
               otherThing:
                 type: string
               thing:

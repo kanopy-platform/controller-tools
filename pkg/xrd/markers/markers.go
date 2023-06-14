@@ -87,9 +87,11 @@ type Claim struct {
 
 func (c Claim) ApplyToXRD(spec *types.XRDSpec, version string) error {
 
-	if spec.ClaimNames == nil {
-		spec.ClaimNames = &apiext.CustomResourceDefinitionNames{}
+	if spec.ClaimNames != nil {
+		return fmt.Errorf("Multiple struct versions marked with kubebuilder:claim:singular=<string>,kind=<string> and only one can be")
 	}
+
+	spec.ClaimNames = &apiext.CustomResourceDefinitionNames{}
 
 	if c.Singular == "" {
 		return fmt.Errorf("singular requried: kubebuilder:claim:singular=<string>,kind=<string>")
