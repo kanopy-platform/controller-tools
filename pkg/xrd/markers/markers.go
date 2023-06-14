@@ -3,6 +3,7 @@ package markers
 import (
 	"fmt"
 
+	xpapiext "github.com/crossplane/crossplane/apis/apiextensions/v1"
 	apiext "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"sigs.k8s.io/controller-tools/pkg/markers"
 	"sigs.k8s.io/controller-tools/pkg/xrd/types"
@@ -14,6 +15,47 @@ var AllDefinitions = []*definitionWithHelp{
 		WithHelp(StorageVersion{}.Help()),
 	must(markers.MakeDefinition("kubebuilder:claim", markers.DescribesType, Claim{})).
 		WithHelp(Claim{}.Help()),
+	must(markers.MakeDefinition("kubebuilder:defaultcompositionref", markers.DescribesType, DefaultCompositionRef{})).
+		WithHelp(DefaultCompositionRef{}.Help()),
+}
+
+// +controllertools:marker:generateHelp:category=XRD
+// DefaultCompositonRef - specifies the name of the default comopsition
+// used for the XRD and whether it is enforced
+// name=string
+// enforced=bool
+type DefaultCompositionRef struct {
+	// Name is required
+	Name string `marker:"name"`
+	// Enforced is optional and toggles between DefaultCompositionRef and EnforcedCompositionRef
+	Enforced bool `marker:"enforced,optional"`
+}
+
+func (d DefaultCompositionRef) ApplyToXRD(spec *types.XRDSpec, version string) error {
+	if spec == nil {
+		return nil
+	}
+
+	if spec.EnforcedCompositionRef != nil || spec.DefaultCompositionRef != nil {
+		return fmt.Errorf("Multiple versions defining CompositionRef settings. Ensure only one struct is marked with defaultcompositionref")
+	}
+
+	if d.Name == "" {
+		return fmt.Errorf("name requried: kubebuilder:defaultcompositionref:name=<string>,enforced=<bool>")
+	}
+
+	compRef := &xpapiext.CompositionReference{
+		Name: d.Name,
+	}
+	if d.Enforced {
+		spec.EnforcedCompositionRef = compRef
+		spec.DefaultCompositionRef = nil
+	} else {
+		spec.EnforcedCompositionRef = nil
+		spec.DefaultCompositionRef = compRef
+	}
+
+	return nil
 }
 
 // +controllertools:marker:generateHelp:category=XRD
