@@ -154,7 +154,7 @@ func (p *Parser) NeedXRDFor(groupKind schema.GroupKind, maxDescLen *int) {
 		xrd.Spec.Versions[0].Referenceable = true
 	}
 
-	// This is configuration validation to ensure we have one and exactle one
+	// This is configuration validation to ensure we have one and exactly one
 	// storage version and that the storage version is served
 	hasStorage := -1
 	for i, ver := range xrd.Spec.Versions {
