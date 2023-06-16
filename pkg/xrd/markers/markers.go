@@ -41,7 +41,7 @@ func (d DefaultCompositionRef) ApplyToXRD(spec *types.XRDSpec, version string) e
 	}
 
 	if d.Name == "" {
-		return fmt.Errorf("name requried: kubebuilder:defaultcompositionref:name=<string>,enforced=<bool>")
+		return fmt.Errorf("name required: kubebuilder:defaultcompositionref:name=<string>,enforced=<bool>")
 	}
 
 	compRef := &xpapiext.CompositionReference{
