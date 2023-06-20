@@ -154,19 +154,23 @@ func (p *Parser) NeedXRDFor(groupKind schema.GroupKind, maxDescLen *int) {
 		xrd.Spec.Versions[0].Referenceable = true
 	}
 
-	// This is configuration validation to ensure we have at least one
-	// storage version and a served versions since both are required
-	hasStorage := false
-	for _, ver := range xrd.Spec.Versions {
+	// This is configuration validation to ensure we have one and exactly one
+	// storage version and that the storage version is served
+	hasStorage := -1
+	for i, ver := range xrd.Spec.Versions {
 		if ver.Referenceable {
-			hasStorage = true
+			if hasStorage > -1 {
+				packages[0].AddError(fmt.Errorf("XRD %s has more than one storage version. Versions  %s, %s are referenceable.", groupKind, xrd.Spec.Versions[hasStorage].Name, ver.Name))
+				continue
+			}
+
+			hasStorage = i
 			if !ver.Served {
 				packages[0].AddError(fmt.Errorf("XRD for %s version %s is referenceable but not served.", groupKind, ver.Name))
 			}
-			break
 		}
 	}
-	if !hasStorage {
+	if hasStorage == -1 {
 		// just add the error to the first relevant package for this CRD,
 		// since there's no specific error location
 		packages[0].AddError(fmt.Errorf("CRD for %s has no storage version", groupKind))

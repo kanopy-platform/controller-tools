@@ -61,6 +61,26 @@ func (Claim) Help() *markers.DefinitionHelp {
 	}
 }
 
+func (DefaultCompositionRef) Help() *markers.DefinitionHelp {
+	return &markers.DefinitionHelp{
+		Category: "XRD",
+		DetailedHelp: markers.DetailedHelp{
+			Summary: "DefaultCompositonRef - specifies the name of the default comopsition used for the XRD and whether it is enforced name=string enforced=bool",
+			Details: "",
+		},
+		FieldHelp: map[string]markers.DetailedHelp{
+			"Name": {
+				Summary: "is required",
+				Details: "",
+			},
+			"Enforced": {
+				Summary: "is optional and toggles between DefaultCompositionRef and EnforcedCompositionRef",
+				Details: "",
+			},
+		},
+	}
+}
+
 func (StorageVersion) Help() *markers.DefinitionHelp {
 	return &markers.DefinitionHelp{
 		Category: "XRD",
